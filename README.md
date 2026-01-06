@@ -10,7 +10,7 @@ Wearly 프로젝트 백엔드(API 서버) 레포지토리입니다.
 - Framework: Express
 - Database: PostgresSQL
 - ORM: Prisma
-- Auth: 추후 결정 
+- Auth: kakao 
 - Deploy: Render / Vercel / Supabase
 
 ---
