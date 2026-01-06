@@ -19,7 +19,7 @@ Wearly 프로젝트 백엔드(API 서버) 레포지토리입니다.
 - Controller → Service → Repository(Prisma) 구조 
 - 데이터는 PostgreSQL에 저장하며 Prisma 를 통해 접근함
 - 이미지는 S3에 업로드함
-- 인증은 JWT 기반
+- 로그인은 카카오 소셜 로그인 
 
 ---
 
