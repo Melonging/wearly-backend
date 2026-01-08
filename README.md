@@ -8,7 +8,7 @@ Wearly 프로젝트 백엔드(API 서버) 레포지토리입니다.
 ## 기술 스택
 - Language: Typescript
 - Framework: Express
-- Database: PostgresSQL
+- Database: Postgres
 - ORM: Prisma
 - Auth: kakao 
 - Deploy: Render / Vercel / Supabase
