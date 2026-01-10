@@ -2,6 +2,59 @@
 Wearly 프로젝트 백엔드(API 서버) 레포지토리입니다. 
 (서버 로직, 데이터베이스, API 제공을 담당합니다.)
 
+---
+## 👨‍💻 Team Members
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/kootaeho">
+        <img src="https://github.com/kootaeho.png" width="100px;" style="border-radius: 50%;" alt=""/>
+      </a>
+      <br />
+      <sub><b>오뚝이/구태호</b></sub>
+      <br />
+      <sub>@kootaeho</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/bhyn">
+        <img src="https://github.com/bhyn.png" width="100px;" style="border-radius: 50%;" alt=""/>
+      </a>
+      <br />
+      <sub><b>보노/김보현</b></sub>
+      <br />
+      <sub>@bhyn</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/gladgaeun">
+        <img src="https://github.com/gladgaeun.png" width="100px;" style="border-radius: 50%;" alt=""/>
+      </a>
+      <br />
+      <sub><b>가니/방가은</b></sub>
+      <br />
+      <sub>@gladgaeun</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/saigepole">
+        <img src="https://github.com/saigepole.png" width="100px;" style="border-radius: 50%;" alt=""/>
+      </a>
+      <br />
+      <sub><b>클로이/김연우</b></sub>
+      <br />
+      <sub>@saigepole</sub>
+    </td>
+    <td align="center">
+      <a href="https://github.com/sultanofdisco">
+        <img src="https://github.com/sultanofdisco.png" width="100px;" style="border-radius: 50%;" alt=""/>
+      </a>
+      <br />
+      <sub><b>루피/오수진</b></sub>
+      <br />
+      <sub>@sultanofdisco</sub>
+    </td>
+  </tr>
+</table>
+
 
 ---
 
