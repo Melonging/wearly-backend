@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 성별에 사용할 선택지 정의
+enum Gender {
+  MALE
+  FEMALE
+}
+
+model User {
+  user_id         Int      @id @default(autoincrement())
+  user_loginID    String   @unique
+  name            String
+  email           String   @unique
+  password        String
+  
+  // ?를 붙이면 '선택 안 함'도 허용됨.
+  gender          Gender?  
+
+  user_profileImg String?
+  created_at      DateTime @default(now())
+  active          Boolean  @default(true)
+
+  @@map("User")
+}
