@@ -1,23 +1,149 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import swaggerJSDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express'
+import authRoutes from './routes/auth'
 
 const app = express();
-const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send('이곳은 Wearley 백엔드의 메인 페이지입니다!');
-});
 
-app.get('/health', (req, res) => {
-  res.send('Wearley API Server is running!');
-});
+// 스웨거 설정
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: { 
+      title: 'Wearly API', 
+      version: '1.0.0',
+      description: 'Wearly 서비스의 API 문서입니다.' 
+    },
+    servers: [
+      {
+        url: 'http://localhost:4000',
+        description: '로컬 서버',
+      },
+    ],
+    components: {
+      schemas: {
+        // 에러 객체
+        ErrorObject: {
+          type: 'object',
+          properties: {
+            code: {
+              type: 'string',
+              example: '400',
+            },
+            message: {
+              type: 'string',
+              example: '에러 메시지',
+            },
+            field: {
+              type: 'string',
+              example: 'fieldName',
+            },
+          },
+        },
+        // 공통 에러 응답
+        ApiError: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: false,
+            },
+            error: {
+              $ref: '#/components/schemas/ErrorObject',
+            },
+          },
+        },
+        // 400 에러 응답
+        BadRequestError: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: false,
+            },
+            error: {
+              type: 'object',
+              properties: {
+                code: {
+                  type: 'string',
+                  example: '400',
+                },
+                message: {
+                  type: 'string',
+                  example: '필수 항목이 누락되었습니다.',
+                },
+                field: {
+                  type: 'string',
+                  example: 'userPassword',
+                },
+              },
+            },
+          },
+        },
+        // 409 에러 응답
+        ConflictError: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: false,
+            },
+            error: {
+              type: 'object',
+              properties: {
+                code: {
+                  type: 'string',
+                  example: '409',
+                },
+                message: {
+                  type: 'string',
+                  example: '이미 사용중인 아이디입니다.',
+                },
+                field: {
+                  type: 'string',
+                  example: 'userid',
+                },
+              },
+            },
+          },
+        },
+        // 500 에러 응답
+        ServerError: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: false,
+            },
+            error: {
+              type: 'object',
+              properties: {
+                code: {
+                  type: 'string',
+                  example: '500',
+                },
+                message: {
+                  type: 'string',
+                  example: '서버 오류가 발생했습니다.',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  apis: ['./src/routes/*.ts'],
+};
+const swaggerDocs = swaggerJSDoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-});
+// 라우터 연결
+app.use('/api/auth', authRoutes); // 모든 auth 관련 API는 /api/auth로 시작함
+
+app.listen(4000, () => console.log('🚀 Server running on http://localhost:4000'));
