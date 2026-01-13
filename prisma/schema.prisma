@@ -18,16 +18,188 @@ enum Gender {
 }
 
 model User {
-  user_id         Int      @id @default(autoincrement())
-  user_loginID    String   @unique
-  name            String
-  password        String
-  
-  gender          Gender 
-  birthDate       DateTime
+  user_id      Int    @id @default(autoincrement())
+  user_loginID String @unique
+  name         String
+  password     String
 
-  created_at      DateTime @default(now())
-  active          Boolean  @default(true)
+  gender    Gender
+  birthDate DateTime
+
+  created_at DateTime @default(now())
+  active     Boolean  @default(true)
+
+  clothings     Clothing[]
+  outfits       Outfit[]
+  tokens        Token[]
+  oauthAccounts OauthAccount[]
+  closets       Closet[]
+  dates         Date[]
 
   @@map("User")
+}
+
+model OauthAccount {
+  id               Int    @id @default(autoincrement())
+  provider         String
+  provider_user_id String
+  user_id          Int
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("oauth_account")
+}
+
+model Token {
+  token_id   Int      @id @default(autoincrement())
+  token_hash String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  user_id    Int
+
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("Token")
+}
+
+model CategoryMain {
+  categoryMain_id Int    @id @default(autoincrement())
+  name            String
+
+  subs CategorySub[]
+
+  @@map("CategoryMain")
+}
+
+model CategorySub {
+  categorySub_id  Int     @id @default(autoincrement())
+  categoryMain_id Int
+  name            String
+  thumbnail_image String?
+
+  categoryMain CategoryMain @relation(fields: [categoryMain_id], references: [categoryMain_id])
+  clothings    Clothing[]
+
+  @@map("CategorySub")
+}
+
+model ClosetTemplate {
+  closet_template_id Int    @id @default(autoincrement())
+  template_name      String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  closets          Closet[]
+  sectionTemplates SectionTemplate[]
+
+  @@map("ClosetTemplate")
+}
+
+model SectionTemplate {
+  section_template_id Int    @id @default(autoincrement())
+  closet_template_id  Int
+  section_type        String
+  position_order      Int
+  default_name        String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  closetTemplate ClosetTemplate @relation(fields: [closet_template_id], references: [closet_template_id])
+  sections       Section[]
+
+  @@map("SectionTemplate")
+}
+
+model Closet {
+  closet_id          Int    @id @default(autoincrement())
+  closet_template_id Int
+  user_id            Int
+  closet_name        String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user           User           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  closetTemplate ClosetTemplate @relation(fields: [closet_template_id], references: [closet_template_id])
+  sections       Section[]
+  clothings      Clothing[]
+
+  @@map("Closet")
+}
+
+model Section {
+  section_id          Int    @id @default(autoincrement())
+  section_template_id Int
+  closet_id           Int
+  name                String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  sectionTemplate SectionTemplate @relation(fields: [section_template_id], references: [section_template_id])
+  closet          Closet          @relation(fields: [closet_id], references: [closet_id], onDelete: Cascade)
+  clothings       Clothing[]
+
+  @@map("Section")
+}
+
+model Clothing {
+  cloth_id       Int @id @default(autoincrement())
+  user_id        Int
+  closet_id      Int
+  section_id     Int
+  categorySub_id Int
+
+  weather String
+  color   String
+  image   String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user          User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  closet        Closet        @relation(fields: [closet_id], references: [closet_id], onDelete: Cascade)
+  section       Section       @relation(fields: [section_id], references: [section_id], onDelete: Cascade)
+  categorySub   CategorySub   @relation(fields: [categorySub_id], references: [categorySub_id])
+  outfitClothes OutfitCloth[]
+
+  @@map("Clothing")
+}
+
+model Outfit {
+  outfit_id   Int      @id @default(autoincrement())
+  user_id     Int
+  outfit_name String
+  created_at  DateTime @default(now())
+
+  user         User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  outfitCloths OutfitCloth[]
+  dates        Date[]
+
+  @@map("Outfit")
+}
+
+model OutfitCloth {
+  outfit_id Int
+  cloth_id  Int
+
+  outfit   Outfit   @relation(fields: [outfit_id], references: [outfit_id], onDelete: Cascade)
+  clothing Clothing @relation(fields: [cloth_id], references: [cloth_id], onDelete: Cascade)
+
+  @@id([outfit_id, cloth_id])
+  @@map("OutfitCloth")
+}
+
+model Date {
+  date_id   Int      @id @default(autoincrement())
+  outfit_id Int
+  wear_date DateTime
+  user_id   Int
+
+  outfit Outfit @relation(fields: [outfit_id], references: [outfit_id], onDelete: Cascade)
+  user   User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@map("Date")
 }
