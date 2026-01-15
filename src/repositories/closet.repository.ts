@@ -19,3 +19,27 @@ export const getClosetsInfo = async (userId: number) => {
   }
   return closets;
 };
+
+export const getClothingInfo = async (clothingId: number) => {
+  const clothing = await prisma.clothing.findUnique({
+    where: {
+      clothing_id: clothingId,
+    },
+    select: {
+      clothing_id: true,
+      temperature: true,
+      season: true,
+      color: true,
+      image: true,
+      categorySub_id: true,
+      section_id: true,
+    },
+  });
+
+  console.log("옷 정보 조회 결과:", clothing);
+
+  if (!clothing) {
+    return null;
+  }
+  return clothing;
+};
