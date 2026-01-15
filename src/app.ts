@@ -4,6 +4,7 @@ import cors from "cors";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import authRoutes from "./routes/auth";
+import closetRoutes from "./routes/closet";
 
 const app = express();
 
@@ -145,6 +146,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // 라우터 연결
 app.use("/api/auth", authRoutes); // 모든 auth 관련 API는 /api/auth로 시작함
+app.use("/api/closet", closetRoutes); // 모든 closet 관련 API는 /api/closet로 시작함
 
 app.listen(4000, () =>
   console.log("🚀 Server running on http://localhost:4000")

@@ -4,7 +4,7 @@ export const signupSuccess = (userid: string, userName: string) => {
     success: true,
     userid,
     userName,
-    error: null
+    error: null,
   };
 };
 
@@ -15,17 +15,17 @@ export const apiError = (code: number, message: string, field?: string) => {
     error: {
       code: code.toString(),
       message,
-      ...(field && { field })
-    }
+      ...(field && { field }),
+    },
   };
 };
 
 // 성공 응답
-export const success = <T>(data: T, message: string = 'Success') => {
+export const success = <T>(data: T, message: string = "Success") => {
   return {
     success: true,
     message,
-    data
+    data,
   };
 };
 
@@ -35,8 +35,8 @@ export const error = (message: string, details?: any) => {
     success: false,
     error: {
       message,
-      details
-    }
+      details,
+    },
   };
 };
 
@@ -54,7 +54,7 @@ export const paginated = <T>(
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit)
-    }
+      totalPages: Math.ceil(total / limit),
+    },
   };
 };
