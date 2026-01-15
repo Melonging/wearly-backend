@@ -175,16 +175,16 @@ model Section {
 }
 
 model Clothing {
-  cloth_id       Int @id @default(autoincrement())
+  clothing_id    Int @id @default(autoincrement())
   user_id        Int
   closet_id      Int
   section_id     Int
   categorySub_id Int
 
-  season         Season // 계절
-  color          Color  // 색상
-  temperature    Int?   // 적정 온도 (섭씨, nullable)
-  image          String // 이미지 URL
+  season      Season // 계절
+  color       Color // 색상
+  temperature Int? // 적정 온도 (섭씨, nullable)
+  image       String // 이미지 URL
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -212,13 +212,13 @@ model Outfit {
 }
 
 model OutfitCloth {
-  outfit_id Int
-  cloth_id  Int
+  outfit_id   Int
+  clothing_id Int
 
   outfit   Outfit   @relation(fields: [outfit_id], references: [outfit_id], onDelete: Cascade)
-  clothing Clothing @relation(fields: [cloth_id], references: [cloth_id], onDelete: Cascade)
+  clothing Clothing @relation(fields: [clothing_id], references: [clothing_id], onDelete: Cascade)
 
-  @@id([outfit_id, cloth_id])
+  @@id([outfit_id, clothing_id])
   @@map("OutfitCloth")
 }
 

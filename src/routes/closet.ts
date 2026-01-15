@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { handleListHomeCloset } from "../controllers/closet.controller";
+import {
+  handleListHomeCloset,
+  handleGetClothingInfo,
+} from "../controllers/closet.controller";
 
 const router = Router();
 
@@ -46,5 +49,57 @@ const router = Router();
  *                             example: "봄/여름 옷장"
  */
 router.get("/", handleListHomeCloset);
+
+/**
+ * @swagger
+ * /api/closet/clothing/{clothingId}:
+ *   get:
+ *     summary: 옷 상세 정보 조회
+ *     tags: [Closet]
+ *     parameters:
+ *       - in: path
+ *         name: clothingId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 옷 ID
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: 옷 정보 조회 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     success:
+ *                       type: boolean
+ *                     data:
+ *                       type: object
+ *                       properties:
+ *                         clothing_id:
+ *                           type: integer
+ *                           example: 1
+ *                         season:
+ *                           type: string
+ *                           example: "SUMMER"
+ *                         color:
+ *                           type: string
+ *                           example: "WHITE"
+ *                         temperature:
+ *                           type: integer
+ *                           nullable: true
+ *                           example: 25
+ *                         image:
+ *                           type: string
+ *                           example: "https://example.com/image.jpg"
+ */
+router.get("/clothing/:clothingId", handleGetClothingInfo);
 
 export default router;
