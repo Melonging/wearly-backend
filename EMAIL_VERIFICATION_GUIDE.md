@@ -16,27 +16,9 @@ SMTP_FROM=your-email@gmail.com
 
 ## 2. SMTP 제공자 선택 및 설정
 
-### 옵션 1: Gmail (개발/테스트용, 비추천)
+-현재 SendGrid 사용중-
 
-- **장점**: 무료, 설정 간단
-- **단점**: 일일 전송 제한(100통), 보안 설정 복잡
-
-**설정 방법:**
-
-1. Google 계정 설정 → 보안
-2. 2단계 인증 활성화
-3. 앱 비밀번호 생성
-4. 생성된 앱 비밀번호를 `SMTP_PASS`에 입력
-
-```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=generated-app-password
-```
-
-### 옵션 2: SendGrid (추천)
+### 옵션 2: SendGrid
 
 - **장점**: 무료 플랜 100통/일, 신뢰성 높음, API 문서 좋음
 - **가격**: 무료 ~ $19.95/월 (40,000통)
@@ -54,57 +36,6 @@ SMTP_SECURE=false
 SMTP_USER=apikey
 SMTP_PASS=your-sendgrid-api-key
 SMTP_FROM=verified-email@yourdomain.com
-```
-
-### 옵션 3: Mailgun (추천)
-
-- **장점**: 무료 플랜 5,000통/월, 개발자 친화적
-- **가격**: 무료 ~ $35/월 (50,000통)
-
-**설정 방법:**
-
-1. https://mailgun.com 가입
-2. 도메인 인증 (DNS 설정 필요)
-3. SMTP 자격 증명 확인
-
-```env
-SMTP_HOST=smtp.mailgun.org
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=postmaster@your-domain.mailgun.org
-SMTP_PASS=your-mailgun-password
-```
-
-### 옵션 4: AWS SES (프로덕션 추천)
-
-- **장점**: 저렴(1,000통당 $0.10), 확장성 좋음
-- **단점**: AWS 계정 필요, 설정 복잡
-
-**설정 방법:**
-
-1. AWS Console → SES
-2. 이메일 주소/도메인 인증
-3. SMTP 자격 증명 생성
-
-```env
-SMTP_HOST=email-smtp.ap-northeast-2.amazonaws.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-ses-smtp-username
-SMTP_PASS=your-ses-smtp-password
-```
-
-### 옵션 5: Naver Works SMTP
-
-- **장점**: 한국 서비스, 네이버 계정 연동
-- **가격**: 유료 서비스
-
-```env
-SMTP_HOST=smtp.worksmobile.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-naver-works-email
-SMTP_PASS=your-password
 ```
 
 ## 3. 데이터베이스 마이그레이션
