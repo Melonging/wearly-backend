@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { handleImageUpload } from "../controllers/upload.controller";
+import { handleImageUpload, handleImageUploadAndRemoveBg } from "../controllers/upload.controller";
 import { upload } from "../middlewares/multer";
 
 const router = Router();
@@ -62,5 +62,53 @@ const router = Router();
  *               $ref: '#/components/schemas/ServerError'
  */
 router.post("/images", upload.single("image"), handleImageUpload);
+
+/**
+ * @swagger
+ * /api/upload/image-nobg:
+ *   post:
+ *     summary: 이미지 업로드 (배경 제거)
+ *     description: Remove.bg API로 배경을 제거한 후 Supabase Storage에 업로드합니다.
+ *     tags:
+ *       - Upload
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *                 description: 배경을 제거할 이미지 파일
+ *               user_id:
+ *                 type: integer
+ *                 description: 사용자 ID (임시)
+ *                 example: 1
+ *     responses:
+ *       200:
+ *         description: 배경 제거 및 업로드 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     imageUrl:
+ *                       type: string
+ *                       example: "https://xxx.supabase.co/storage/v1/object/public/clothing-images/1/123456.png"
+ *                 message:
+ *                   type: string
+ *                   example: "배경 제거 및 업로드 완료"
+ */
+router.post("/image-nobg", upload.single("image"), handleImageUploadAndRemoveBg);
 
 export default router;
