@@ -49,6 +49,7 @@ enum Color {
 model User {
   user_id      Int    @id @default(autoincrement())
   user_loginID String @unique
+  email        String @unique
   name         String
   password     String
 
@@ -232,4 +233,15 @@ model Date {
   user   User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   @@map("Date")
+}
+
+model EmailVerification {
+  id         Int      @id @default(autoincrement())
+  email      String
+  code       String
+  expires_at DateTime
+  created_at DateTime @default(now())
+  verified   Boolean  @default(false)
+
+  @@map("EmailVerification")
 }

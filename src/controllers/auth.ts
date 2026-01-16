@@ -8,6 +8,10 @@ import {
   getAccessTokenExpiresIn,
 } from "../utils/jwt";
 import { signupSuccess, apiError } from "../utils/response";
+import {
+  generateVerificationCode,
+  sendVerificationEmail,
+} from "../utils/email";
 
 // Prisma Client 싱글톤 인스턴스
 const prisma = new PrismaClient();
@@ -25,10 +29,11 @@ const genderMap: Record<string, Gender> = {
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const { userid, userPassword, gender, userName, birthDate } = req.body;
+    const { userid, userPassword, gender, userName, birthDate, email } =
+      req.body;
 
     // 1. 필수 입력값 확인
-    if (!userid || !userPassword || !userName) {
+    if (!userid || !userPassword || !userName || !email) {
       return res.status(400).json(apiError(400, "필수 항목이 누락되었습니다."));
     }
 
@@ -80,7 +85,15 @@ export const signup = async (req: Request, res: Response) => {
         .json(apiError(400, "유효하지 않은 생년월일입니다.", "birthDate"));
     }
 
-    // 5. 아이디 중복 체크
+    // 5. 이메일 형식 검증
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res
+        .status(400)
+        .json(apiError(400, "올바른 이메일 형식이 아닙니다.", "email"));
+    }
+
+    // 6. 아이디 중복 체크
     const existingUserById = await prisma.user.findUnique({
       where: { user_loginID: userid },
     });
@@ -91,13 +104,25 @@ export const signup = async (req: Request, res: Response) => {
         .json(apiError(409, "이미 사용중인 아이디입니다.", "userid"));
     }
 
-    // 6. 비밀번호 암호화
+    // 7. 이메일 중복 체크
+    const existingUserByEmail = await prisma.user.findUnique({
+      where: { email: email },
+    });
+
+    if (existingUserByEmail) {
+      return res
+        .status(409)
+        .json(apiError(409, "이미 사용중인 이메일입니다.", "email"));
+    }
+
+    // 8. 비밀번호 암호화
     const hashedPassword = await bcrypt.hash(userPassword, 10);
 
-    // 7. DB 저장
+    // 9. DB 저장
     const newUser = await prisma.user.create({
       data: {
         user_loginID: userid,
+        email: email,
         password: hashedPassword,
         name: userName,
         gender: genderValue,
@@ -106,7 +131,7 @@ export const signup = async (req: Request, res: Response) => {
       },
     });
 
-    // 8. 성공 응답
+    // 10. 성공 응답
     res.status(201).json(signupSuccess(newUser.user_loginID, newUser.name));
   } catch (err: any) {
     console.error("회원가입 에러:", err);
@@ -181,6 +206,146 @@ export const login = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error("로그인 에러:", err);
 
+    res.status(500).json(apiError(500, "서버 오류가 발생했습니다."));
+  }
+};
+
+// 이메일 인증 코드 발송
+export const sendVerificationCode = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    // 1. 이메일 필수 확인
+    if (!email) {
+      return res.status(400).json(apiError(400, "이메일을 입력해주세요."));
+    }
+
+    // 2. 이메일 형식 검증
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res
+        .status(400)
+        .json(apiError(400, "올바른 이메일 형식이 아닙니다.", "email"));
+    }
+
+    // 3. 이메일 중복 체크 (이미 가입된 이메일인지)
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return res
+        .status(409)
+        .json(apiError(409, "이미 가입된 이메일입니다.", "email"));
+    }
+
+    // 4. 6자리 인증 코드 생성
+    const code = generateVerificationCode();
+
+    // 5. 만료 시간 설정 (5분)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+
+    // 6. 기존 인증 코드 삭제 (같은 이메일의 미인증 코드)
+    await prisma.emailVerification.deleteMany({
+      where: {
+        email,
+        verified: false,
+      },
+    });
+
+    // 7. DB에 인증 코드 저장
+    await prisma.emailVerification.create({
+      data: {
+        email,
+        code,
+        expires_at: expiresAt,
+      },
+    });
+
+    // 8. 이메일 발송
+    const emailSent = await sendVerificationEmail(email, code);
+
+    if (!emailSent) {
+      return res.status(500).json(apiError(500, "이메일 발송에 실패했습니다."));
+    }
+
+    // 9. 성공 응답
+    res.status(200).json({
+      success: true,
+      message: "인증 코드가 이메일로 발송되었습니다.",
+      data: {
+        email,
+        expiresIn: 300, // 5분 (초 단위)
+      },
+      error: null,
+    });
+  } catch (err: any) {
+    console.error("인증 코드 발송 에러:", err);
+    res.status(500).json(apiError(500, "서버 오류가 발생했습니다."));
+  }
+};
+
+// 이메일 인증 코드 검증
+export const verifyEmailCode = async (req: Request, res: Response) => {
+  try {
+    const { email, code } = req.body;
+
+    // 1. 필수 입력값 확인
+    if (!email || !code) {
+      return res
+        .status(400)
+        .json(apiError(400, "이메일과 인증 코드를 입력해주세요."));
+    }
+
+    // 2. 인증 코드 조회
+    const verification = await prisma.emailVerification.findFirst({
+      where: {
+        email,
+        code,
+        verified: false,
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+    });
+
+    // 3. 인증 코드가 없는 경우
+    if (!verification) {
+      return res
+        .status(400)
+        .json(apiError(400, "잘못된 인증 코드입니다.", "code"));
+    }
+
+    // 4. 인증 코드 만료 확인
+    if (new Date() > verification.expires_at) {
+      return res
+        .status(400)
+        .json(apiError(400, "인증 코드가 만료되었습니다.", "code"));
+    }
+
+    // 5. 인증 성공 처리
+    await prisma.emailVerification.update({
+      where: {
+        id: verification.id,
+      },
+      data: {
+        verified: true,
+      },
+    });
+
+    // 6. 성공 응답
+    res.status(200).json({
+      success: true,
+      message: "이메일 인증이 완료되었습니다.",
+      data: {
+        email,
+        verified: true,
+      },
+      error: null,
+    });
+  } catch (err: any) {
+    console.error("인증 코드 검증 에러:", err);
     res.status(500).json(apiError(500, "서버 오류가 발생했습니다."));
   }
 };

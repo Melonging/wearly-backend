@@ -171,4 +171,117 @@ router.post("/signup", authController.signup);
  */
 router.post("/signin", authController.login);
 
+/**
+ * @openapi
+ * /api/auth/send-code:
+ *   post:
+ *     summary: 이메일 인증 코드 발송
+ *     description: 회원가입을 위한 6자리 인증 코드를 이메일로 발송합니다.
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "user@example.com"
+ *     responses:
+ *       200:
+ *         description: 인증 코드 발송 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "인증 코드가 이메일로 발송되었습니다."
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                       example: "user@example.com"
+ *                     expiresIn:
+ *                       type: number
+ *                       description: 만료 시간 (초 단위)
+ *                       example: 300
+ *                 error:
+ *                   type: null
+ *       400:
+ *         description: 잘못된 요청 (이메일 형식 오류)
+ *       409:
+ *         description: 이미 가입된 이메일
+ *       500:
+ *         description: 서버 오류 또는 이메일 발송 실패
+ */
+router.post("/send-code", authController.sendVerificationCode);
+
+/**
+ * @openapi
+ * /api/auth/verify-code:
+ *   post:
+ *     summary: 이메일 인증 코드 검증
+ *     description: 사용자가 입력한 6자리 인증 코드를 검증합니다.
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - code
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "user@example.com"
+ *               code:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: 인증 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "이메일 인증이 완료되었습니다."
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                       example: "user@example.com"
+ *                     verified:
+ *                       type: boolean
+ *                       example: true
+ *                 error:
+ *                   type: null
+ *       400:
+ *         description: 잘못된 인증 코드 또는 만료된 코드
+ *       500:
+ *         description: 서버 오류
+ */
+router.post("/verify-code", authController.verifyEmailCode);
+
 export default router;
