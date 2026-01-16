@@ -27,6 +27,14 @@ const swaggerOptions = {
       },
     ],
     components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "JWT 토큰을 입력하세요 (Bearer 제외)",
+        },
+      },
       schemas: {
         // 에러 객체
         ErrorObject: {
@@ -81,6 +89,52 @@ const swaggerOptions = {
                 field: {
                   type: "string",
                   example: "userPassword",
+                },
+              },
+            },
+          },
+        },
+        // 401 에러 응답
+        UnauthorizedError: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            error: {
+              type: "object",
+              properties: {
+                code: {
+                  type: "string",
+                  example: "401",
+                },
+                message: {
+                  type: "string",
+                  example: "인증이 필요합니다.",
+                },
+              },
+            },
+          },
+        },
+        // 403 에러 응답
+        ForbiddenError: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            error: {
+              type: "object",
+              properties: {
+                code: {
+                  type: "string",
+                  example: "403",
+                },
+                message: {
+                  type: "string",
+                  example: "접근 권한이 없습니다.",
                 },
               },
             },

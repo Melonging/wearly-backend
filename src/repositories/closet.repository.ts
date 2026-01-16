@@ -1,4 +1,4 @@
-import { PrismaClient} from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -43,6 +43,48 @@ export const getClothingInfo = async (clothingId: number) => {
     return null;
   }
   return clothing;
+};
+
+// 옷장 정보 조회 (템플릿 정보 포함)
+export const findClosetWithTemplate = async (closetId: number, userId: number) => {
+  return await prisma.closet.findFirst({
+    where: {
+      closet_id: closetId,
+      user_id: userId,
+    },
+    include: {
+      closetTemplate: {
+        select: {
+          template_name: true,
+        },
+      },
+    },
+  });
+};
+
+// 옷장의 섹션 목록 조회 (섹션 타입, 별명, 옷 개수 포함)
+export const findSectionsByClosetId = async (closetId: number) => {
+  return await prisma.section.findMany({
+    where: {
+      closet_id: closetId,
+    },
+    include: {
+      sectionTemplate: {
+        select: {
+          section_type: true,
+          default_name: true,
+        },
+      },
+      _count: {
+        select: {
+          clothings: true,
+        },
+      },
+    },
+    orderBy: {
+      created_at: 'asc',
+    },
+  });
 };
 
 //섹션 정보 조회 (옷장 이름 포함)
