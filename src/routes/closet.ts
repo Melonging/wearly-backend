@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getSectionClothesController } from '../controllers/closet.controller';
-import { authMiddleware } from '../middlewares/auth'; // JWT 인증 미들웨어
+import { authenticateToken } from '../middlewares/auth';
 
 const router = Router();
 
@@ -149,6 +149,8 @@ const router = Router();
  *             schema:
  *               $ref: '#/components/schemas/ServerError'
  */
-router.get('/sections/:sectionId/clothes', authMiddleware, getSectionClothesController);
+router.get('/sections/:sectionId/clothes', authenticateToken, getSectionClothesController);
+
+console.log('✓ Closet router initialized');
 
 export default router;
