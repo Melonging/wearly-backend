@@ -1,4 +1,21 @@
+import { homeCloset, clothing } from "../types/closetTypes";
 import { Season, Color } from '@prisma/client';
+//홈 조회
+export const responseFromClosetsInfo = (closets: homeCloset[]) => {
+  return {
+    success: true,
+    data: closets,
+    error: null,
+  };
+};
+//옷 조회
+export const responseFromClothingInfo = (clothing: clothing) => {
+  return {
+    success: true,
+    data: clothing,
+    error: null,
+  };
+};
 
 // 섹션 속 옷 조회 응답
 export interface SectionClothesResponseDto {

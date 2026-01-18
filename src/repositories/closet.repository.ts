@@ -1,6 +1,49 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient} from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+export const getClosetsInfo = async (userId: number) => {
+  const closets = await prisma.closet.findMany({
+    where: {
+      user_id: userId,
+    },
+    select: {
+      closet_id: true,
+      closet_name: true,
+    },
+  });
+
+  console.log("옷장 정보 조회 결과:", closets);
+
+  if (!closets) {
+    return null;
+  }
+  return closets;
+};
+
+export const getClothingInfo = async (clothingId: number) => {
+  const clothing = await prisma.clothing.findUnique({
+    where: {
+      clothing_id: clothingId,
+    },
+    select: {
+      clothing_id: true,
+      temperature: true,
+      season: true,
+      color: true,
+      image: true,
+      categorySub_id: true,
+      section_id: true,
+    },
+  });
+  
+  console.log("옷 정보 조회 결과:", clothing);
+
+  if (!clothing) {
+    return null;
+  }
+  return clothing;
+};
 
 //섹션 정보 조회 (옷장 이름 포함)
 export const findSectionWithCloset = async (sectionId: number) => {
@@ -21,7 +64,7 @@ export const findClothesBySection = async (sectionId: number, userId: number) =>
   return await prisma.clothing.findMany({
     where: {
       section_id: sectionId,
-      user_id: userId, // 본인 옷만 조회
+      user_id: userId,
     },
     include: {
       categorySub: {
@@ -31,7 +74,7 @@ export const findClothesBySection = async (sectionId: number, userId: number) =>
       },
     },
     orderBy: {
-      created_at: 'desc', // 최신순
+      created_at: 'desc',
     },
   });
 };
