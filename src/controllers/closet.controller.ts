@@ -4,24 +4,93 @@ import { getHomeClosets, viewClothing } from "../services/closet.service.js";
 
 export const handleListHomeCloset = async (req: Request, res: Response) => {
   console.log("홈 화면 옷장 목록 조회 요청 받음");
-  // TODO: 인증 미들웨어에서 설정한 userId를 가져오기
-  // 지금은 임시로 query parameter에서 가져옴. 나중에 인증 미들웨어가 추가되면 파라미터에서 아이디를 제거할 계획임.
-  const userId = req.query.userId ? parseInt(req.query.userId as string) : 1; // 임시 기본값 1
+  const userId = req.query.userId ? parseInt(req.query.userId as string) : 1;
 
   const closets = await getHomeClosets(userId);
-  res.status(200).json({ success: true, data: closets }); // 200 OK - 조회 성공
+  res.status(200).json({ success: true, data: closets });
 };
 
 export const handleGetClothingInfo = async (req: Request, res: Response) => {
   console.log("옷 정보 조회 요청 받음");
   const clothingId = req.params.clothingId
     ? parseInt(req.params.clothingId as string)
-    : 1; // 임시 기본값 1
+    : 1;
 
   const clothing = await viewClothing(clothingId);
-  res.status(200).json({ success: true, data: clothing }); // 200 OK - 조회 성공
+  res.status(200).json({ success: true, data: clothing });
 };
 
+/**
+ * 옷장 섹션 뷰 조회 컨트롤러
+ * GET /api/closet/:closetId/view
+ * 
+ * 홈 화면에서 옷장 선택 시 호출
+ * 옷장의 섹션들과 각 섹션에 포함된 옷 개수를 보여줌
+ */
+export const getClosetViewController = async (req: Request, res: Response) => {
+  try {
+    const closetId = parseInt(req.params.closetId);
+    const userId = (req as any).user?.userId; // JWT 미들웨어에서 추출
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: '401',
+          message: '인증이 필요합니다.',
+        },
+      });
+    }
+
+    if (isNaN(closetId)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: '400',
+          message: '유효하지 않은 옷장 ID입니다.',
+          field: 'closetId',
+        },
+      });
+    }
+
+    const result = await closetService.getClosetSectionsView(closetId, userId);
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    console.error('옷장 뷰 조회 에러:', error);
+
+    if (error.message.startsWith('NOT_FOUND')) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: '404',
+          message: error.message.replace('NOT_FOUND: ', ''),
+        },
+      });
+    }
+
+    if (error.message.startsWith('FORBIDDEN')) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: '403',
+          message: error.message.replace('FORBIDDEN: ', ''),
+        },
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: {
+        code: '500',
+        message: '서버 오류가 발생했습니다.',
+      },
+    });
+  }
+};
 
 /**
  * 섹션 속 옷 조회 컨트롤러

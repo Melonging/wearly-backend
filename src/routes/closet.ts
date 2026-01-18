@@ -2,7 +2,8 @@ import { Router } from 'express';
 import {
   handleListHomeCloset,
   handleGetClothingInfo,
-  getSectionClothesController
+  getSectionClothesController,
+  getClosetViewController
 } from '../controllers/closet.controller';
 import { authenticateToken } from '../middlewares/auth';
 
@@ -25,24 +26,6 @@ const router = Router();
  *   responses:
  *     200:
  *       description: 옷장 목록 조회 성공
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               success:
- *                 type: boolean
- *               data:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     closet_id:
- *                       type: integer
- *                       example: 1
- *                     closet_name:
- *                       type: string
- *                       example: "봄/여름 옷장"
  */
 router.get("/", handleListHomeCloset);
 
@@ -60,43 +43,29 @@ router.get("/", handleListHomeCloset);
  *         type: integer
  *       description: 옷 ID
  *       example: 1
- *   responses:
- *     200:
- *       description: 옷 정보 조회 성공
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               success:
- *                 type: boolean
- *                 example: true
- *               data:
- *                 type: object
- *                 properties:
- *                   success:
- *                     type: boolean
- *                   data:
- *                     type: object
- *                     properties:
- *                       clothing_id:
- *                         type: integer
- *                         example: 1
- *                       season:
- *                         type: string
- *                         example: "SUMMER"
- *                       color:
- *                         type: string
- *                         example: "WHITE"
- *                       temperature:
- *                         type: integer
- *                         nullable: true
- *                         example: 25
- *                       image:
- *                         type: string
- *                         example: "https://example.com/image.jpg"
  */
 router.get("/clothing/:clothingId", handleGetClothingInfo);
+
+/**
+ * @openapi
+ * /api/closet/{closetId}/view:
+ *   get:
+ *     summary: 옷장 뷰 조회 (섹션 정보 포함)
+ *     description: 홈 화면에서 옷장을 선택했을 때, 해당 옷장의 섹션 목록과 각 섹션에 포함된 옷 개수를 조회합니다.
+ *     tags:
+ *       - Closet
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: closetId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: 조회할 옷장의 ID
+ *         example: 1
+ */
+router.get('/:closetId/view', authenticateToken, getClosetViewController);
 
 /**
  * @swagger
@@ -114,133 +83,6 @@ router.get("/clothing/:clothingId", handleGetClothingInfo);
  *       schema:
  *         type: integer
  *       description: 섹션 ID
- *   responses:
- *     200:
- *       description: 섹션 옷 조회 성공
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               success:
- *                 type: boolean
- *               data:
- *                 type: object
- *                 properties:
- *                   section:
- *                     type: object
- *                     properties:
- *                       section_id:
- *                         type: integer
- *                         example: 1
- *                       name:
- *                         type: string
- *                         example: "상의"
- *                       closet_name:
- *                         type: string
- *                         example: "봄/가을 옷장"
- *                   clothes:
- *                     type: array
- *                     items:
- *                       type: object
- *                       properties:
- *                         clothing_id:
- *                           type: integer
- *                           example: 1
- *                         image:
- *                           type: string
- *                           example: "https://example.com/image.jpg"
- *                         category:
- *                           type: string
- *                           example: "티셔츠"
- *                         season:
- *                           type: string
- *                           enum: [SPRING, SUMMER, FALL, WINTER, ALL_SEASON]
- *                           example: "SPRING"
- *                         color:
- *                           type: string
- *                           enum: [BLACK, WHITE, GRAY, NAVY, BLUE, SKY_BLUE, RED, PINK, ORANGE, YELLOW, GREEN, KHAKI, BROWN, BEIGE, PURPLE, ETC]
- *                           example: "BLUE"
- *                         temperature:
- *                           type: integer
- *                           nullable: true
- *                           example: 20
- *                         created_at:
- *                           type: string
- *                           format: date-time
- *                           example: "2024-01-15T12:00:00Z"
- *                   total_count:
- *                     type: integer
- *                     example: 10
- *     400:
- *       description: 잘못된 요청
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/BadRequestError'
- *     401:
- *       description: 인증 실패
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               success:
- *                 type: boolean
- *                 example: false
- *               error:
- *                 type: object
- *                 properties:
- *                   code:
- *                     type: string
- *                     example: "401"
- *                   message:
- *                     type: string
- *                     example: "인증이 필요합니다."
- *     403:
- *       description: 권한 없음
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               success:
- *                 type: boolean
- *                 example: false
- *               error:
- *                 type: object
- *                 properties:
- *                   code:
- *                     type: string
- *                     example: "403"
- *                   message:
- *                     type: string
- *                     example: "해당 섹션에 접근 권한이 없습니다."
- *     404:
- *       description: 섹션을 찾을 수 없음
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               success:
- *                 type: boolean
- *                 example: false
- *               error:
- *                 type: object
- *                 properties:
- *                   code:
- *                     type: string
- *                     example: "404"
- *                   message:
- *                     type: string
- *                     example: "섹션을 찾을 수 없습니다."
- *     500:
- *       description: 서버 오류
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/ServerError'
  */
 router.get('/sections/:sectionId/clothes', authenticateToken, getSectionClothesController);
 
