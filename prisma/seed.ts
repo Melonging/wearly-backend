@@ -10,6 +10,7 @@ async function main() {
     update: {},
     create: {
       user_loginID: "testuser1",
+      email: "testuser1@example.com",
       name: "김철수",
       password: "$2b$10$hash",
       gender: "MALE",
