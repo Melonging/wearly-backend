@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import path from "path";
+import { fileURLToPath } from "url";
 import authRoutes from "./routes/auth";
 import closetRoutes from "./routes/closet";
 import uploadRoutes from "./routes/upload";
@@ -141,6 +143,29 @@ const swaggerOptions = {
             },
           },
         },
+        // 404 에러 응답
+        NotFoundError: {
+          type: "object",
+          properties: {
+            success: {
+              type: "boolean",
+              example: false,
+            },
+            error: {
+              type: "object",
+              properties: {
+                code: {
+                  type: "string",
+                  example: "404",
+                },
+                message: {
+                  type: "string",
+                  example: "요청한 리소스를 찾을 수 없습니다.",
+                },
+              },
+            },
+          },
+        },
         // 409 에러 응답
         ConflictError: {
           type: "object",
@@ -194,9 +219,14 @@ const swaggerOptions = {
       },
     },
   },
-  apis: ["./src/routes/*.ts"],
+  apis: [
+    path.join(__dirname, "./routes/*.ts"),
+    path.join(__dirname, "./routes/**/*.ts"),
+  ], // 절대 경로로 수정함.
 };
+
 const swaggerDocs = swaggerJSDoc(swaggerOptions);
+
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // 라우터 연결
@@ -205,5 +235,5 @@ app.use("/api/closet", closetRoutes); // 모든 closet 관련 API는 /api/closet
 app.use("/api/upload", uploadRoutes); // 모든 upload 관련 API는 /api/upload로 시작함
 
 app.listen(4000, () =>
-  console.log("🚀 Server running on http://localhost:4000")
+  console.log("🚀 Server running on http://localhost:4000"),
 );

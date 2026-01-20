@@ -1,29 +1,60 @@
-import { Request, Response } from 'express';
-import * as closetService from '../services/closet.service';
+import { Request, Response } from "express";
+import * as closetService from "../services/closet.service";
 import { getHomeClosets, viewClothing } from "../services/closet.service.js";
 
+// 홈 화면 옷장 조회
 export const handleListHomeCloset = async (req: Request, res: Response) => {
   console.log("홈 화면 옷장 목록 조회 요청 받음");
-  const userId = req.query.userId ? parseInt(req.query.userId as string) : 1;
+  try {
+    const userId = (req as any).user?.userId; // JWT 미들웨어에서 추출 (payload의 userId 사용)
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: "401",
+          message: "인증이 필요합니다.",
+        },
+      });
+    }
+    const closets = await getHomeClosets(userId);
+    res.status(200).json({ success: true, data: closets });
+  } catch (error: any) {
+    console.error("홈 화면 옷장 목록 조회 에러:", error);
 
-  const closets = await getHomeClosets(userId);
-  res.status(200).json({ success: true, data: closets });
-};
+    if (error.message.startsWith("NOT_FOUND")) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: "404",
+          message: error.message.replace("NOT_FOUND: ", ""),
+        },
+      });
+    }
 
-export const handleGetClothingInfo = async (req: Request, res: Response) => {
-  console.log("옷 정보 조회 요청 받음");
-  const clothingId = req.params.clothingId
-    ? parseInt(req.params.clothingId as string)
-    : 1;
+    if (error.message.startsWith("FORBIDDEN")) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: "403",
+          message: error.message.replace("FORBIDDEN: ", ""),
+        },
+      });
+    }
 
-  const clothing = await viewClothing(clothingId);
-  res.status(200).json({ success: true, data: clothing });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: "500",
+        message: "서버 오류가 발생했습니다.",
+      },
+    });
+  }
 };
 
 /**
  * 옷장 섹션 뷰 조회 컨트롤러
  * GET /api/closet/:closetId/view
- * 
+ *
  * 홈 화면에서 옷장 선택 시 호출
  * 옷장의 섹션들과 각 섹션에 포함된 옷 개수를 보여줌
  */
@@ -36,8 +67,8 @@ export const getClosetViewController = async (req: Request, res: Response) => {
       return res.status(401).json({
         success: false,
         error: {
-          code: '401',
-          message: '인증이 필요합니다.',
+          code: "401",
+          message: "인증이 필요합니다.",
         },
       });
     }
@@ -46,9 +77,9 @@ export const getClosetViewController = async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         error: {
-          code: '400',
-          message: '유효하지 않은 옷장 ID입니다.',
-          field: 'closetId',
+          code: "400",
+          message: "유효하지 않은 옷장 ID입니다.",
+          field: "closetId",
         },
       });
     }
@@ -60,24 +91,24 @@ export const getClosetViewController = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.error('옷장 뷰 조회 에러:', error);
+    console.error("옷장 뷰 조회 에러:", error);
 
-    if (error.message.startsWith('NOT_FOUND')) {
+    if (error.message.startsWith("NOT_FOUND")) {
       return res.status(404).json({
         success: false,
         error: {
-          code: '404',
-          message: error.message.replace('NOT_FOUND: ', ''),
+          code: "404",
+          message: error.message.replace("NOT_FOUND: ", ""),
         },
       });
     }
 
-    if (error.message.startsWith('FORBIDDEN')) {
+    if (error.message.startsWith("FORBIDDEN")) {
       return res.status(403).json({
         success: false,
         error: {
-          code: '403',
-          message: error.message.replace('FORBIDDEN: ', ''),
+          code: "403",
+          message: error.message.replace("FORBIDDEN: ", ""),
         },
       });
     }
@@ -85,8 +116,8 @@ export const getClosetViewController = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: {
-        code: '500',
-        message: '서버 오류가 발생했습니다.',
+        code: "500",
+        message: "서버 오류가 발생했습니다.",
       },
     });
   }
@@ -96,17 +127,20 @@ export const getClosetViewController = async (req: Request, res: Response) => {
  * 섹션 속 옷 조회 컨트롤러
  * GET /api/closet/sections/:sectionId/clothes
  */
-export const getSectionClothesController = async (req: Request, res: Response) => {
+export const getSectionClothesController = async (
+  req: Request,
+  res: Response,
+) => {
   try {
     const sectionId = parseInt(req.params.sectionId);
-    const userId = (req as any).user?.user_id; // JWT 미들웨어에서 추출
+    const userId = (req as any).user?.userId; // JWT 미들웨어에서 추출
 
     if (!userId) {
       return res.status(401).json({
         success: false,
         error: {
-          code: '401',
-          message: '인증이 필요합니다.',
+          code: "401",
+          message: "인증이 필요합니다.",
         },
       });
     }
@@ -115,9 +149,9 @@ export const getSectionClothesController = async (req: Request, res: Response) =
       return res.status(400).json({
         success: false,
         error: {
-          code: '400',
-          message: '유효하지 않은 섹션 ID입니다.',
-          field: 'sectionId',
+          code: "400",
+          message: "유효하지 않은 섹션 ID입니다.",
+          field: "sectionId",
         },
       });
     }
@@ -129,24 +163,24 @@ export const getSectionClothesController = async (req: Request, res: Response) =
       data: result,
     });
   } catch (error: any) {
-    console.error('섹션 옷 조회 에러:', error);
+    console.error("섹션 옷 조회 에러:", error);
 
-    if (error.message.startsWith('NOT_FOUND')) {
+    if (error.message.startsWith("NOT_FOUND")) {
       return res.status(404).json({
         success: false,
         error: {
-          code: '404',
-          message: error.message.replace('NOT_FOUND: ', ''),
+          code: "404",
+          message: error.message.replace("NOT_FOUND: ", ""),
         },
       });
     }
 
-    if (error.message.startsWith('FORBIDDEN')) {
+    if (error.message.startsWith("FORBIDDEN")) {
       return res.status(403).json({
         success: false,
         error: {
-          code: '403',
-          message: error.message.replace('FORBIDDEN: ', ''),
+          code: "403",
+          message: error.message.replace("FORBIDDEN: ", ""),
         },
       });
     }
@@ -154,8 +188,70 @@ export const getSectionClothesController = async (req: Request, res: Response) =
     res.status(500).json({
       success: false,
       error: {
-        code: '500',
-        message: '서버 오류가 발생했습니다.',
+        code: "500",
+        message: "서버 오류가 발생했습니다.",
+      },
+    });
+  }
+};
+
+//옷 정보 조회
+export const handleGetClothingInfo = async (req: Request, res: Response) => {
+  console.log("옷 정보 조회 요청 받음");
+  try {
+    const userId = (req as any).user?.userId; // JWT 미들웨어에서 추출
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: {
+          code: "401",
+          message: "인증이 필요합니다.",
+        },
+      });
+    }
+
+    const clothingId = parseInt(req.params.clothingId as string);
+    if (isNaN(clothingId)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: "400",
+          message: "유효하지 않은 옷 ID입니다.",
+          field: "clothingId",
+        },
+      });
+    }
+
+    const clothing = await viewClothing(clothingId, userId);
+    res.status(200).json({ success: true, data: clothing });
+  } catch (error: any) {
+    console.error("옷 조회 에러:", error);
+
+    if (error.message.startsWith("NOT_FOUND")) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: "404",
+          message: error.message.replace("NOT_FOUND: ", ""),
+        },
+      });
+    }
+
+    if (error.message.startsWith("FORBIDDEN")) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: "403",
+          message: error.message.replace("FORBIDDEN: ", ""),
+        },
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: {
+        code: "500",
+        message: "서버 오류가 발생했습니다.",
       },
     });
   }
