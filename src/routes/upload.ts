@@ -84,9 +84,9 @@ router.post("/images", upload.single("image"), handleImageUpload);
  *                 type: string
  *                 format: binary
  *                 description: 배경을 제거할 이미지 파일
- *               user_id:
+ *               userId:
  *                 type: integer
- *                 description: 사용자 ID (임시)
+ *                 description: 사용자 ID (임시, 나중에 JWT로 대체)
  *                 example: 1
  *     responses:
  *       200:
@@ -105,9 +105,34 @@ router.post("/images", upload.single("image"), handleImageUpload);
  *                     imageUrl:
  *                       type: string
  *                       example: "https://xxx.supabase.co/storage/v1/object/public/clothing-images/1/123456.png"
+ *                 error:
+ *                   type: null
+ *       400:
+ *         description: 잘못된 요청 (파일 누락)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
  *                 message:
  *                   type: string
- *                   example: "배경 제거 및 업로드 완료"
+ *                   example: "파일이 업로드되지 않았습니다."
+ *       500:
+ *         description: 서버 오류 (배경 제거 실패 또는 업로드 실패)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "배경 제거 실패."
  */
 router.post("/image-nobg", upload.single("image"), handleImageUploadAndRemoveBg);
 

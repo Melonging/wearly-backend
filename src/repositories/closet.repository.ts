@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// 홈 화면 옷장 목록 조회
 export const getClosetsInfo = async (userId: number) => {
   const closets = await prisma.closet.findMany({
     where: {
@@ -21,32 +22,11 @@ export const getClosetsInfo = async (userId: number) => {
   return closets;
 };
 
-export const getClothingInfo = async (clothingId: number) => {
-  const clothing = await prisma.clothing.findUnique({
-    where: {
-      clothing_id: clothingId,
-    },
-    select: {
-      clothing_id: true,
-      temperature: true,
-      season: true,
-      color: true,
-      image: true,
-      categorySub_id: true,
-      section_id: true,
-    },
-  });
-  
-  console.log("옷 정보 조회 결과:", clothing);
-
-  if (!clothing) {
-    return null;
-  }
-  return clothing;
-};
-
 // 옷장 정보 조회 (템플릿 정보 포함)
-export const findClosetWithTemplate = async (closetId: number, userId: number) => {
+export const findClosetWithTemplate = async (
+  closetId: number,
+  userId: number,
+) => {
   return await prisma.closet.findFirst({
     where: {
       closet_id: closetId,
@@ -82,7 +62,7 @@ export const findSectionsByClosetId = async (closetId: number) => {
       },
     },
     orderBy: {
-      created_at: 'asc',
+      created_at: "asc",
     },
   });
 };
@@ -102,7 +82,10 @@ export const findSectionWithCloset = async (sectionId: number) => {
 };
 
 //섹션에 속한 옷들 조회
-export const findClothesBySection = async (sectionId: number, userId: number) => {
+export const findClothesBySection = async (
+  sectionId: number,
+  userId: number,
+) => {
   return await prisma.clothing.findMany({
     where: {
       section_id: sectionId,
@@ -116,13 +99,16 @@ export const findClothesBySection = async (sectionId: number, userId: number) =>
       },
     },
     orderBy: {
-      created_at: 'desc',
+      created_at: "desc",
     },
   });
 };
 
 // 섹션 소유자 확인 (권한 검증)
-export const checkSectionOwnership = async (sectionId: number, userId: number) => {
+export const checkSectionOwnership = async (
+  sectionId: number,
+  userId: number,
+) => {
   const section = await prisma.section.findFirst({
     where: {
       section_id: sectionId,
@@ -132,4 +118,30 @@ export const checkSectionOwnership = async (sectionId: number, userId: number) =
     },
   });
   return section !== null;
+};
+
+// 옷 정보 조회
+export const getClothingInfo = async (clothingId: number) => {
+  const clothing = await prisma.clothing.findUnique({
+    where: {
+      clothing_id: clothingId,
+    },
+    select: {
+      user_id: true,
+      clothing_id: true,
+      temperature: true,
+      season: true,
+      color: true,
+      image: true,
+      categorySub_id: true,
+      section_id: true,
+    },
+  });
+
+  console.log("옷 정보 조회 결과:", clothing);
+
+  if (!clothing) {
+    return null;
+  }
+  return clothing;
 };

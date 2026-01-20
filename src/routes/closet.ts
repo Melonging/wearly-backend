@@ -53,6 +53,11 @@ const router = Router();
  *                     error:
  *                       type: string
  *                       nullable: true
+ *
+ *       401:
+ *         description: 인증 실패
+ *       404:
+ *         description: 유저를 찾을 수 없음
  */
 router.get("/", handleListHomeCloset);
 
@@ -242,6 +247,11 @@ router.get(
  *                     error:
  *                       type: string
  *                       nullable: true
+ *
+ *       401:
+ *         description: 인증 실패
+ *       404:
+ *         description: 옷을 찾을 수 없음
  */
 router.get("/clothing/:clothingId", handleGetClothingInfo);
 

@@ -1,40 +1,45 @@
-import * as closetRepository from '../repositories/closet.repository';
-import { 
-  SectionClothesResponseDto, 
-  ClothingItemDto,
-  ClosetSectionsViewResponseDto, 
-  SectionViewItemDto 
-} from '../dtos/closet.dto';
+import * as closetRepository from "../repositories/closet.repository";
 import {
-  responseFromClosetsInfo,
-  responseFromClothingInfo,
-} from '../dtos/closet.dto';
+  ClosetsInfoResponseDto,
+  HomeClosetDto,
+  ClothingInfoResponseDto,
+  SectionClothesResponseDto,
+  ClothingItemDto,
+  ClosetSectionsViewResponseDto,
+  SectionViewItemDto,
+} from "../dtos/closet.dto";
 
-export const getHomeClosets = async (userId: number) => {
+// 홈화면 옷장목록 조회
+export const getHomeClosets = async (
+  userId: number,
+): Promise<ClosetsInfoResponseDto> => {
   const closets = await closetRepository.getClosetsInfo(userId);
-  if (!closets) {
-    throw new Error("옷장 정보를 불러오는 데 실패했습니다.");
-  }
-  return responseFromClosetsInfo(closets);
-};
 
-export const viewClothing = async (clothingId: number) => {
-  const clothing = await closetRepository.getClothingInfo(clothingId);
-  if (!clothing) {
-    throw new Error("옷 정보를 불러오는 데 실패했습니다.");
+  if (!closets || closets.length === 0) {
+    throw new Error("NOT_FOUND: 옷장 정보를 찾을 수 없습니다.");
   }
-  return responseFromClothingInfo(clothing);
+
+  // 배열을 직접 반환
+  return closets.map(
+    (closet): HomeClosetDto => ({
+      closet_id: closet.closet_id,
+      closet_name: closet.closet_name,
+    }),
+  );
 };
 
 // 옷장 선택 시 섹션 뷰 조회
 export const getClosetSectionsView = async (
   closetId: number,
-  userId: number
+  userId: number,
 ): Promise<ClosetSectionsViewResponseDto> => {
   // 1. 옷장 존재 및 소유권 확인
-  const closet = await closetRepository.findClosetWithTemplate(closetId, userId);
+  const closet = await closetRepository.findClosetWithTemplate(
+    closetId,
+    userId,
+  );
   if (!closet) {
-    throw new Error('FORBIDDEN: 해당 옷장에 접근 권한이 없습니다.');
+    throw new Error("FORBIDDEN: 해당 옷장에 접근 권한이 없습니다.");
   }
 
   // 2. 옷장의 섹션 목록 조회
@@ -62,19 +67,25 @@ export const getClosetSectionsView = async (
 // 섹션 속 옷 조회
 export const getSectionClothes = async (
   sectionId: number,
-  userId: number
+  userId: number,
 ): Promise<SectionClothesResponseDto> => {
-  const hasOwnership = await closetRepository.checkSectionOwnership(sectionId, userId);
+  const hasOwnership = await closetRepository.checkSectionOwnership(
+    sectionId,
+    userId,
+  );
   if (!hasOwnership) {
-    throw new Error('FORBIDDEN: 해당 섹션에 접근 권한이 없습니다.');
+    throw new Error("FORBIDDEN: 해당 섹션에 접근 권한이 없습니다.");
   }
 
   const section = await closetRepository.findSectionWithCloset(sectionId);
   if (!section) {
-    throw new Error('NOT_FOUND: 섹션을 찾을 수 없습니다.');
+    throw new Error("NOT_FOUND: 섹션을 찾을 수 없습니다.");
   }
 
-  const clothes = await closetRepository.findClothesBySection(sectionId, userId);
+  const clothes = await closetRepository.findClothesBySection(
+    sectionId,
+    userId,
+  );
 
   const clothingItems: ClothingItemDto[] = clothes.map((cloth) => ({
     clothing_id: cloth.clothing_id,
@@ -94,5 +105,32 @@ export const getSectionClothes = async (
     },
     clothes: clothingItems,
     total_count: clothingItems.length,
+  };
+};
+
+// 옷 정보 조회
+// 방법 2: 에러 구분 (더 복잡하지만 명확함)
+export const viewClothing = async (
+  clothingId: number,
+  userId: number,
+): Promise<ClothingInfoResponseDto> => {
+  const clothing = await closetRepository.getClothingInfo(clothingId);
+
+  if (!clothing) {
+    throw new Error("NOT_FOUND: 옷 정보를 찾을 수 없습니다.");
+  }
+  if (clothing.user_id !== userId) {
+    throw new Error("FORBIDDEN: 해당 옷에 접근 권한이 없습니다.");
+  }
+
+  // DTO 변환하여 반환
+  return {
+    clothing_id: clothing.clothing_id,
+    temperature: clothing.temperature,
+    season: clothing.season,
+    color: clothing.color,
+    image: clothing.image,
+    categorySub_id: clothing.categorySub_id,
+    section_id: clothing.section_id,
   };
 };
