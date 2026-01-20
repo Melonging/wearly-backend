@@ -6,7 +6,7 @@ import { getHomeClosets, viewClothing } from "../services/closet.service.js";
 export const handleListHomeCloset = async (req: Request, res: Response) => {
   console.log("홈 화면 옷장 목록 조회 요청 받음");
   try {
-    const userId = (req as any).user?.user_id; // JWT 미들웨어에서 추출
+    const userId = (req as any).user?.userId; // JWT 미들웨어에서 추출 (payload의 userId 사용)
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -133,7 +133,7 @@ export const getSectionClothesController = async (
 ) => {
   try {
     const sectionId = parseInt(req.params.sectionId);
-    const userId = (req as any).user?.user_id; // JWT 미들웨어에서 추출
+    const userId = (req as any).user?.userId; // JWT 미들웨어에서 추출
 
     if (!userId) {
       return res.status(401).json({
@@ -199,7 +199,7 @@ export const getSectionClothesController = async (
 export const handleGetClothingInfo = async (req: Request, res: Response) => {
   console.log("옷 정보 조회 요청 받음");
   try {
-    const userId = (req as any).user?.user_id; // JWT 미들웨어에서 추출
+    const userId = (req as any).user?.userId; // JWT 미들웨어에서 추출
     if (!userId) {
       return res.status(401).json({
         success: false,

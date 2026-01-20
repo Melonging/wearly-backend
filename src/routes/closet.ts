@@ -59,7 +59,7 @@ const router = Router();
  *       404:
  *         description: 유저를 찾을 수 없음
  */
-router.get("/", handleListHomeCloset);
+router.get("/", authenticateToken, handleListHomeCloset);
 
 /**
  * @swagger
@@ -253,7 +253,7 @@ router.get(
  *       404:
  *         description: 옷을 찾을 수 없음
  */
-router.get("/clothing/:clothingId", handleGetClothingInfo);
+router.get("/clothing/:clothingId", authenticateToken, handleGetClothingInfo);
 
 console.log("✓ Closet router initialized");
 
