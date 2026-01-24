@@ -90,9 +90,7 @@ export const getSectionClothes = async (
   const clothingItems: ClothingItemDto[] = clothes.map((cloth) => ({
     clothing_id: cloth.clothing_id,
     image: cloth.image,
-    category: cloth.categorySub.name,
-    season: cloth.season,
-    color: cloth.color,
+    category: cloth.category.name,
     temperature: cloth.temperature,
     created_at: cloth.created_at,
   }));
@@ -127,10 +125,8 @@ export const viewClothing = async (
   return {
     clothing_id: clothing.clothing_id,
     temperature: clothing.temperature,
-    season: clothing.season,
-    color: clothing.color,
     image: clothing.image,
-    categorySub_id: clothing.categorySub_id,
+    category_id: clothing.category_id,
     section_id: clothing.section_id,
   };
 };
