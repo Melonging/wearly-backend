@@ -155,14 +155,6 @@ router.get("/:closetId/view", authenticateToken, getClosetViewController);
  *                       clothing_id:
  *                         type: integer
  *                         example: 1
- *                       season:
- *                         type: string
- *                         enum: [SPRING, SUMMER, FALL, WINTER, ALL_SEASON]
- *                         example: "SUMMER"
- *                       color:
- *                         type: string
- *                         enum: [BLACK, WHITE, GRAY, NAVY, BLUE, SKY_BLUE, RED, PINK, ORANGE, YELLOW, GREEN, KHAKI, BROWN, BEIGE, PURPLE, ETC]
- *                         example: "WHITE"
  *                       temperature:
  *                         type: integer
  *                         nullable: true
@@ -170,7 +162,7 @@ router.get("/:closetId/view", authenticateToken, getClosetViewController);
  *                       image:
  *                         type: string
  *                         example: "https://via.placeholder.com/300x400"
- *                       categorySub_id:
+ *                       category_id:
  *                         type: integer
  *                         example: 1
  *                       section_id:
@@ -227,18 +219,10 @@ router.get(
  *                           type: integer
  *                           nullable: true
  *                           example: 25
- *                         season:
- *                           type: string
- *                           enum: [SPRING, SUMMER, FALL, WINTER, ALL_SEASON]
- *                           example: "SUMMER"
- *                         color:
- *                           type: string
- *                           enum: [BLACK, WHITE, GRAY, NAVY, BLUE, SKY_BLUE, RED, PINK, ORANGE, YELLOW, GREEN, KHAKI, BROWN, BEIGE, PURPLE, ETC]
- *                           example: "WHITE"
  *                         image:
  *                           type: string
  *                           example: "https://via.placeholder.com/300x400"
- *                         categorySub_id:
+ *                         category_id:
  *                           type: integer
  *                           example: 1
  *                         section_id:

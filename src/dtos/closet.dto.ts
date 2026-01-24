@@ -1,5 +1,3 @@
-import { Season, Color } from "@prisma/client";
-
 // 홈 화면 옷장 목록 조회 - 옷장 하나의 정보
 export interface HomeClosetDto {
   closet_id: number;
@@ -42,9 +40,7 @@ export interface ClothingItemDto {
   //섹션 속 옷 조회에서 필요한 옷 하나
   clothing_id: number;
   image: string;
-  category: string; // CategorySub의 name
-  season: Season;
-  color: Color;
+  category: string; // Category의 name
   temperature: number | null;
   created_at: Date;
 }
@@ -53,9 +49,7 @@ export interface ClothingInfoResponseDto {
   //옷 상세 조회에서 필요한 옷 하나 //위에거랑 통일해야 하나?
   clothing_id: number;
   temperature: number | null; // 추천 기온: 옷 하나 눌렀을 때 필요함
-  season: Season; // 계절: 카테고리 화면에서 옷들을 정렬할 때 기준으로 필요함
-  color: Color; // 색상: 카테고리 화면에서 옷들을 정렬할 때 기준으로 필요함
   image: string;
-  categorySub_id: number; // 카테고리 수정 기능이 있으면 필요함.
+  category_id: number; // 카테고리 수정 기능이 있으면 필요함.
   section_id: number; // 옷장 안에서의 위치 수정 기능이 있으면 필요함.
 }
