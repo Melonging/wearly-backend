@@ -11,8 +11,6 @@ const router = Router();
  *     summary: 카테고리 목록 조회
  *     description: 모든 의류 카테고리 목록을 조회합니다.
  *     tags: [Outfit]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: 카테고리 목록 조회 성공
@@ -42,9 +40,11 @@ const router = Router();
  *                   type: string
  *                   nullable: true
  *                   example: null
- *       401:
- *         description: 인증 실패
  *       404:
  *         description: 카테고리를 찾을 수 없음
  */
-router.get("/categories", authenticateToken, handleCategoryView);
+router.get("/categories", handleCategoryView);
+
+console.log("✓ Outfit router initialized");
+
+export default router;
