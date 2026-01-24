@@ -92,7 +92,7 @@ export const findClothesBySection = async (
       user_id: userId,
     },
     include: {
-      categorySub: {
+      category: {
         select: {
           name: true,
         },
@@ -130,10 +130,8 @@ export const getClothingInfo = async (clothingId: number) => {
       user_id: true,
       clothing_id: true,
       temperature: true,
-      season: true,
-      color: true,
       image: true,
-      categorySub_id: true,
+      category_id: true,
       section_id: true,
     },
   });

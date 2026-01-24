@@ -40,7 +40,7 @@ export interface ClothingItemDto {
   //섹션 속 옷 조회에서 필요한 옷 하나
   clothing_id: number;
   image: string;
-  category: string; // CategorySub의 name
+  category: string; // Category의 name
   temperature: number | null;
   created_at: Date;
 }
