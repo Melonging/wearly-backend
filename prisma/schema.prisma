@@ -17,35 +17,6 @@ enum Gender {
   PREFER_NOT_TO_SAY
 }
 
-// 계절 선택지
-enum Season {
-  SPRING
-  SUMMER
-  FALL
-  WINTER
-  ALL_SEASON // 사계절용
-}
-
-// 색상 선택지
-enum Color {
-  BLACK
-  WHITE
-  GRAY
-  NAVY
-  BLUE
-  SKY_BLUE
-  RED
-  PINK
-  ORANGE
-  YELLOW
-  GREEN
-  KHAKI
-  BROWN
-  BEIGE
-  PURPLE
-  ETC
-}
-
 model User {
   user_id      Int    @id @default(autoincrement())
   user_loginID String @unique
@@ -92,25 +63,12 @@ model Token {
   @@map("Token")
 }
 
-model CategoryMain {
-  categoryMain_id Int    @id @default(autoincrement())
+model Category {
+  category_id Int    @id @default(autoincrement())
   name            String
 
-  subs CategorySub[]
-
-  @@map("CategoryMain")
-}
-
-model CategorySub {
-  categorySub_id  Int     @id @default(autoincrement())
-  categoryMain_id Int
-  name            String
-  thumbnail_image String?
-
-  categoryMain CategoryMain @relation(fields: [categoryMain_id], references: [categoryMain_id])
+  @@map("Category")
   clothings    Clothing[]
-
-  @@map("CategorySub")
 }
 
 model ClosetTemplate {
@@ -180,10 +138,8 @@ model Clothing {
   user_id        Int
   closet_id      Int
   section_id     Int
-  categorySub_id Int
+  category_id Int
 
-  season      Season // 계절
-  color       Color // 색상
   temperature Int? // 적정 온도 (섭씨, nullable)
   image       String // 이미지 URL
 
@@ -193,7 +149,7 @@ model Clothing {
   user          User          @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
   closet        Closet        @relation(fields: [closet_id], references: [closet_id], onDelete: Cascade)
   section       Section       @relation(fields: [section_id], references: [section_id], onDelete: Cascade)
-  categorySub   CategorySub   @relation(fields: [categorySub_id], references: [categorySub_id])
+  category  Category   @relation(fields: [category_id], references: [category_id])
   outfitClothes OutfitCloth[]
 
   @@map("Clothing")
