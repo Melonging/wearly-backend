@@ -284,4 +284,67 @@ router.post("/send-code", authController.sendVerificationCode);
  */
 router.post("/verify-code", authController.verifyEmailCode);
 
+/**
+ * @openapi
+ * /api/auth/google/callback:
+ *   get:
+ *     summary: Google OAuth 콜백
+ *     description: Google에서 인증 코드를 받아 사용자 정보를 조회 및 로그인/회원가입 처리
+ *     tags:
+ *       - Auth
+ *     parameters:
+ *       - in: query
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Google에서 받은 Authorization Code
+ *     responses:
+ *       200:
+ *         description: Google 로그인/회원가입 성공
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 tokenType:
+ *                   type: string
+ *                   example: "Bearer"
+ *                 accessToken:
+ *                   type: string
+ *                   description: JWT Access Token (1시간 유효)
+ *                 refreshToken:
+ *                   type: string
+ *                   description: JWT Refresh Token (7일 유효)
+ *                 expiresIn:
+ *                   type: number
+ *                   description: Access Token 만료 시간 (초 단위)
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: number
+ *                     userName:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     loginType:
+ *                       type: string
+ *                       example: "google"
+ *                 error:
+ *                   type: null
+ *       400:
+ *         description: 잘못된 Authorization Code
+ *       401:
+ *         description: 토큰 검증 실패
+ *       409:
+ *         description: 이미 가입된 이메일
+ *       500:
+ *         description: 서버 오류
+ */
+router.get("/google/callback", authController.googleCallback);
+
 export default router;
