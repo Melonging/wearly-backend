@@ -2,6 +2,8 @@
 import { Request, Response } from "express";
 import { PrismaClient, Gender } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { OAuth2Client } from "google-auth-library";
+import dotenv from "dotenv";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -13,9 +15,17 @@ import {
   sendVerificationEmail,
 } from "../utils/email";
 
+dotenv.config();
+
 // Prisma Client 싱글톤 인스턴스
 const prisma = new PrismaClient();
 
+// Google OAuth 2.0 Client 초기화
+const googleClient = new OAuth2Client(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI,
+);
 // 애플리케이션 종료 시 연결 해제
 process.on("beforeExit", async () => {
   await prisma.$disconnect();
@@ -45,8 +55,8 @@ export const signup = async (req: Request, res: Response) => {
           apiError(
             400,
             "비밀번호는 최소 8자 이상이어야 합니다.",
-            "userPassword"
-          )
+            "userPassword",
+          ),
         );
     }
 
@@ -59,8 +69,8 @@ export const signup = async (req: Request, res: Response) => {
           apiError(
             400,
             '성별은 "남성", "여성", "선택안함" 중 하나여야 합니다.',
-            "gender"
-          )
+            "gender",
+          ),
         );
     }
 
@@ -73,8 +83,8 @@ export const signup = async (req: Request, res: Response) => {
           apiError(
             400,
             "생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)",
-            "birthDate"
-          )
+            "birthDate",
+          ),
         );
     }
 
@@ -346,6 +356,150 @@ export const verifyEmailCode = async (req: Request, res: Response) => {
     });
   } catch (err: any) {
     console.error("인증 코드 검증 에러:", err);
+    res.status(500).json(apiError(500, "서버 오류가 발생했습니다."));
+  }
+};
+
+// Google 로그인/회원가입 콜백 핸들러
+export const googleCallback = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.query;
+
+    if (!code || typeof code !== "string") {
+      return res
+        .status(400)
+        .json(apiError(400, "Authorization code가 필요합니다."));
+    }
+
+    // 1. Authorization Code를 Token으로 교환
+    const { tokens } = await googleClient.getToken(code);
+    const idToken = tokens.id_token;
+
+    if (!idToken) {
+      return res.status(401).json(apiError(401, "Invalid token from Google"));
+    }
+
+    // 2. ID Token 검증 및 사용자 정보 추출
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID || "",
+    });
+
+    const payload = ticket?.getPayload?.();
+    if (!payload) {
+      return res.status(401).json(apiError(401, "Invalid token payload"));
+    }
+
+    const { sub: googleId, email: googleEmail, name: userName } = payload;
+
+    if (!googleId || !googleEmail) {
+      return res
+        .status(400)
+        .json(apiError(400, "Google에서 필수 정보를 받을 수 없습니다."));
+    }
+
+    // 3. 기존 사용자 확인 (googleId로 찾기)
+    // OauthAccount 통해 사용자 찾기
+    let oauthAccount = await prisma.oauthAccount.findFirst({
+      where: {
+        provider: "google",
+        provider_user_id: googleId,
+      },
+    });
+
+    let user = null;
+    if (oauthAccount) {
+      user = await prisma.user.findUnique({
+        where: { user_id: oauthAccount.user_id },
+      });
+    }
+
+    // 4. 신규 사용자: 회원가입
+    if (!user) {
+      // googleEmail이 이미 존재하는지 확인
+      const existingEmailUser = await prisma.user.findUnique({
+        where: { email: googleEmail },
+      });
+
+      if (existingEmailUser) {
+        // 이메일은 있지만 Google 계정과 연결되지 않음
+        return res
+          .status(409)
+          .json(
+            apiError(
+              409,
+              "이미 가입된 이메일입니다. 일반 로그인을 사용하세요.",
+              "email",
+            ),
+          );
+      }
+
+      // 새 사용자 생성
+      user = await prisma.user.create({
+        data: {
+          user_loginID: `google_${googleId}`,
+          email: googleEmail,
+          name: userName || "Wearly User",
+          password: "", // Google 로그인은 비밀번호 없음
+          googleId,
+          googleEmail,
+          loginType: "google",
+          gender: "PREFER_NOT_TO_SAY", // 기본값
+          birthDate: new Date("2000-01-01"), // 기본값
+          active: true,
+        },
+      });
+
+      // OauthAccount 생성
+      await prisma.oauthAccount.create({
+        data: {
+          provider: "google",
+          provider_user_id: googleId,
+          user_id: user.user_id,
+        },
+      });
+    }
+
+    // 5. 비활성 계정 확인
+    if (!user.active) {
+      return res.status(403).json(apiError(403, "비활성화된 계정입니다."));
+    }
+
+    // 6. JWT 토큰 생성
+    const accessToken = generateAccessToken(user.user_id, user.user_loginID);
+    const refreshToken = generateRefreshToken(user.user_id, user.user_loginID);
+
+    const expiresIn = getAccessTokenExpiresIn();
+
+    // 7. Refresh Token을 DB에 저장 (선택사항)
+    await prisma.token.create({
+      data: {
+        token_hash: refreshToken,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일
+        user_id: user.user_id,
+      },
+    });
+
+    // 8. 응답
+    return res.status(200).json({
+      success: true,
+      tokenType: "Bearer",
+      accessToken,
+      refreshToken,
+      expiresIn,
+      user: {
+        userId: user.user_id,
+        userName: user.name,
+        email: user.email,
+        loginType: "google",
+      },
+      error: null,
+    });
+  } catch (err: any) {
+    console.error("Google 콜백 에러:", err);
+    if (err.message?.includes("Invalid value for: code")) {
+      return res.status(400).json(apiError(400, "Invalid authorization code"));
+    }
     res.status(500).json(apiError(500, "서버 오류가 발생했습니다."));
   }
 };

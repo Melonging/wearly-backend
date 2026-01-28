@@ -21,6 +21,9 @@ model User {
   user_id      Int    @id @default(autoincrement())
   user_loginID String @unique
   email        String @unique
+  googleId     String? @unique
+  googleEmail  String? @unique
+  loginType    String  @default("email") // email, google, etc.
   name         String
   password     String
 
@@ -47,6 +50,8 @@ model OauthAccount {
   user_id          Int
 
   user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  @@unique([provider, provider_user_id])
 
   @@map("oauth_account")
 }
