@@ -5,7 +5,7 @@
     "lib": ["ES2020"],
     "types": ["node"],
     
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "outDir": "./dist",
     "rootDir": "./src",
     
